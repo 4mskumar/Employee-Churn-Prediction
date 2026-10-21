@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Churn Prediction</title>
+  <style>
+    :root {
+      font-family: Inter, system-ui, Arial, sans-serif;
+      color: #20283b;
+      background: #f4f6fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+    }
+
+    main { max-width: 1100px; margin: auto; }
+
+    header { margin-bottom: 28px; }
+
+    h1 { margin-bottom: 8px; font-size: 30px; }
+    h2 { font-size: 20px; }
+
+    .muted { color: #697386; line-height: 1.6; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: #e6f7ec;
+      color: #187642;
+      font-size: 13px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e3e8f1;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px #17255408;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #d6dce8;
+      border-radius: 8px;
+      background: white;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #c4d5ff;
+      border-color: #4263eb;
+    }
+
+    button {
+      border: 0;
+      background: #334cc4;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 9px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:disabled { opacity: 0.6; cursor: wait; }
+
+    .secondary { background: #e9edff; color: #334cc4; }
+
+    .result {
+      display: none;
+      margin-top: 22px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #f3f6ff;
+      border: 1px solid #dce4ff;
+    }
+
+    .result.show { display: block; }
+
+    .result h3 { margin-top: 0; }
+
+    .probability {
+      font-size: 34px;
+      font-weight: 750;
+      margin: 8px 0;
+    }
+
+    .bar {
+      height: 10px;
+      background: #e1e5ee;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 14px 0;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      background: #d97706;
+      transition: width .3s;
+    }
+
+    .error {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fff0f0;
+      color: #a61b1b;
+      white-space: pre-wrap;
+    }
+
+    .error.show { display: block; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5e7eb; }
+    th { font-size: 13px; background: #f8f9fc; }
+
+    .table-wrap { overflow-x: auto; }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      body { padding: 18px 10px; }
+      .card { padding: 16px; }
+    }
+
+    @media (max-width: 460px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 25px; }
+    }
+
+    /* Dark product UI */
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #e7eaf2; background: #0a0d14; }
+    body { background: radial-gradient(ellipse at 12% 0%, #17213a 0, #0a0d14 42%); min-height: 100vh; }
+    main { max-width: 1280px; }
+    h1 { letter-spacing: -1.3px; font-weight: 760; }
+    h2 { letter-spacing: -.45px; }
+    .muted { color: #929bb0; }
+    .status { background: #102d25; color: #6ee7b7; border: 1px solid #1c5142; }
+    .card { background: rgba(17, 22, 34, .92); border: 1px solid #252d40; border-radius: 18px; box-shadow: 0 14px 44px #00000020; }
+    .metric { background: linear-gradient(145deg, #171e2d, #111722); border-color: #293247; }
+    .metric-value { letter-spacing: -1px; }
+    .metric-label { color: #929bb0; text-transform: uppercase; letter-spacing: .7px; }
+    .chart-card { background: #111722; border-color: #293247; }
+    input, select { color: #e7eaf2; background: #0d121d; border-color: #30394e; border-radius: 10px; }
+    input::placeholder { color: #6e7890; }
+    input:focus, select:focus { outline: 2px solid #536dfe55; border-color: #7185ff; }
+    select option { background: #111722; }
+    button { background: #6577ff; color: #fff; border-radius: 10px; transition: transform .16s ease, background .16s ease, opacity .16s ease; }
+    button:hover:not(:disabled) { background: #7b8aff; transform: translateY(-1px); }
+    button:disabled { opacity: .58; }
+    .result { background: #111b2c; border-color: #283d61; }
+    .bar { background: #293247; }
+    .error { background: #351a24; color: #ffb4c0; border: 1px solid #6d293b; }
+    .table-wrap { overflow: auto; max-height: 500px; border: 1px solid #293247; border-radius: 12px; }
+    table { margin-top: 0; min-width: 760px; }
+    th, td { border-bottom-color: #252d40; }
+    th { background: #171e2d; color: #aab4ca; text-transform: uppercase; letter-spacing: .55px; font-size: 11px; }
+    td { color: #dce2ef; }
+    tbody tr:hover { background: #182136; }
+    .batch-toolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:14px 0; }
+    .batch-toolbar input { max-width:320px; }
+    .batch-summary { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
+    .summary-chip { background:#141b2a; border:1px solid #293247; border-radius:10px; padding:11px 14px; color:#cbd4e6; font-size:13px; }
+    .pagination { display:flex; gap:8px; align-items:center; justify-content:flex-end; padding:14px 2px 2px; color:#929bb0; font-size:13px; flex-wrap:wrap; }
+    .pagination button { margin:0; padding:8px 12px; background:#1b2436; border:1px solid #30394e; }
+    .pagination button:disabled { opacity:.35; }
+    .pill { display:inline-block; border-radius:999px; padding:4px 9px; font-size:11px; font-weight:750; }
+    .pill-high { color:#fdba74; background:#432b1c; }
+    .pill-medium { color:#fde68a; background:#413819; }
+    .pill-low { color:#86efac; background:#153628; }
+    .loading-line { height:3px; overflow:hidden; background:#252d40; border-radius:5px; margin:12px 0; }
+    .loading-line::after { content:""; display:block; width:35%; height:100%; background:#8290ff; animation: loading 1.05s ease-in-out infinite; }
+    @keyframes loading { from { transform:translateX(-110%); } to { transform:translateX(310%); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  </style>
+</head>
+
+<body>
+<main>
+  <header>
+    <p class="status" id="apiStatus">Checking API connection...</p>
+    <h1>Employee Churn Prediction</h1>
+    <p class="muted">
+      An AI-driven approach to estimating employee attrition risk.
+      Enter employee information to receive a model prediction.
+    </p>
+  </header>
+
+  <section class="card">
+    <h2>Predict for one employee</h2>
+    <p class="muted">
+      Complete all required fields. The form is generated from the
+      features expected by your trained model.
+    </p>
+
+    <form id="employeeForm">
+      <div class="grid" id="featureGrid">
+        Loading employee fields...
+      </div>
+      <button id="predictButton" type="submit" disabled>
+        Predict Attrition
+      </button>
+    </form>
+
+    <div id="predictionError" class="error"></div>
+
+    <div id="predictionResult" class="result" aria-live="polite">
+      <h3 id="predictionTitle">Prediction result</h3>
+      <div class="probability" id="probabilityValue">--</div>
+      <div class="bar">
+        <div id="probabilityBar" class="bar-fill"></div>
+      </div>
+      <p id="predictionDescription"></p>
+      <p class="muted" id="predictionNote"></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Batch prediction using CSV</h2>
+    <p class="muted">
+      Upload a CSV containing the same 30 feature columns. Do not include
+      the target column Attrition. The API returns predictions for each row.
+    </p>
+
+    <form id="batchForm">
+      <label for="csvFile">Employee CSV file</label>
+      <input id="csvFile" type="file" accept=".csv" required />
+      <button type="submit" id="batchButton">Predict CSV</button>
+    </form>
+
+    <div id="batchError" class="error"></div>
+    <div id="batchResult"></div>
+  </section>
+
+  <p class="muted">
+    This tool provides model estimates, not definitive judgments about
+    employees. Predictions should not be used as the sole basis for
+    employment decisions.
+  </p>
+</main>
+
+<script>
+  const API_URL = "http://127.0.0.1:5000";
+
+  const featureGrid = document.getElementById("featureGrid");
+  const employeeForm = document.getElementById("employeeForm");
+  const predictButton = document.getElementById("predictButton");
+  const predictionResult = document.getElementById("predictionResult");
+
+  let features = [];
+
+  function showError(id, message) {
+    const element = document.getElementById(id);
+    element.textContent = message;
+    element.classList.add("show");
+  }
+
+  function clearError(id) {
+    const element = document.getElementById(id);
+    element.textContent = "";
+    element.classList.remove("show");
+  }
+
+  async function loadFeatures() {
+    try {
+      const [healthResponse, featureResponse] = await Promise.all([
+        fetch(`${API_URL}/api/health`),
+        fetch(`${API_URL}/api/features`)
+      ]);
+
+      if (!healthResponse.ok || !featureResponse.ok) {
+        throw new Error("The Flask API did not respond successfully.");
+      }
+
+      const featureData = await featureResponse.json();
+      features = featureData.features;
+
+      featureGrid.innerHTML = "";
+
+      features.forEach((feature) => {
+        const wrapper = document.createElement("div");
+        const label = document.createElement("label");
+        const id = `feature-${feature.name}`;
+
+        label.htmlFor = id;
+        label.textContent = feature.name;
+
+        let input;
+
+        if (feature.type === "categorical") {
+          input = document.createElement("select");
+
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "Select an option";
+          placeholder.disabled = true;
+          placeholder.selected = true;
+          input.appendChild(placeholder);
+
+          (feature.options || []).forEach((optionValue) => {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionValue;
+            input.appendChild(option);
+          });
+        } else {
+          input = document.createElement("input");
+          input.type = "number";
+          input.step = "any";
+          input.placeholder = "Enter " + feature.name;
+        }
+
+        input.id = id;
+        input.name = feature.name;
+        input.required = true;
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        featureGrid.appendChild(wrapper);
+      });
+
+      predictButton.disabled = false;
+      document.getElementById("apiStatus").textContent =
+        `API connected · ${features.length} features loaded`;
+    } catch (error) {
+      document.getElementById("apiStatus").textContent = "API unavailable";
+      showError(
+        "predictionError",
+        "Could not load features. Make sure Flask is running at " +
+        API_URL + ". Details: " + error.message
+      );
+    }
+  }
+
+  employeeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    clearError("predictionError");
+    predictionResult.classList.remove("show");
+    predictButton.disabled = true;
+    predictButton.textContent = "Predicting...";
+
+    try {
+      const employee = {};
+
+      for (const feature of features) {
+        const input = employeeForm.elements[feature.name];
+        const value = input.value;
+
+        employee[feature.name] =
+          feature.type === "numeric" ? Number(value) : value;
+      }
+
+      const response = await fetch(`${API_URL}/api/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(employee)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Prediction request failed.");
+      }
+
+      document.getElementById("predictionTitle").textContent =
+        data.result;
+
+      const probability = data.attrition_probability;
+
+      document.getElementById("probabilityValue").textContent =
+        probability === null || probability === undefined
+          ? "Unavailable"
+          : `${(probability * 100).toFixed(2)}%`;
+
+      document.getElementById("probabilityBar").style.width =
+        probability === null || probability === undefined
+          ? "0%"
+          : `${Math.max(0, Math.min(100, probability * 100))}%`;
+
+      document.getElementById("probabilityBar").style.background =
+        data.prediction === 1 ? "#d97706" : "#15803d";
+
+      document.getElementById("predictionDescription").textContent =
+        `Predicted class: ${data.prediction}. Risk label: ${data.risk_level}.`;
+
+      document.getElementById("predictionNote").textContent = data.note || "";
+
+      predictionResult.classList.add("show");
+      predictionResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (error) {
+      showError("predictionError", error.message);
+    } finally {
+      predictButton.disabled = false;
+      predictButton.textContent = "Predict Attrition";
+    }
+  });
+
+  // Format a probability from 0–1 as a percentage for the results table.
+  function percent(value) {
+    return `${(Number(value) * 100).toFixed(2)}%`;
+  }
+
+  let batchResults = [];
+  let currentPage = 1;
+  const pageSize = 10;
+  let batchSearch = "";
+
+  function renderBatchResults(total) {
+    const output = document.getElementById("batchResult");
+    const filtered = batchResults.filter(item => {
+      const query = batchSearch.toLowerCase();
+      return !query || String(item.employee_number ?? "").toLowerCase().includes(query) ||
+        String(item.row ?? "").includes(query) || String(item.result ?? "").toLowerCase().includes(query) ||
+        String(item.risk_level ?? "").toLowerCase().includes(query);
+    });
+    const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    currentPage = Math.min(currentPage, pages);
+    const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const old = output.querySelector(".table-wrap");
+    if (old) old.remove();
+    const oldPagination = output.querySelector(".pagination");
+    if (oldPagination) oldPagination.remove();
+    const count = output.querySelector(".result-count");
+    if (count) count.textContent = `Showing ${filtered.length ? (currentPage - 1) * pageSize + 1 : 0}–${Math.min(currentPage * pageSize, filtered.length)} of ${filtered.length} matching employees`;
+
+    const wrapper = document.createElement("div"); wrapper.className = "table-wrap";
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const header = document.createElement("tr");
+    ["Row", "Employee Number", "Prediction", "Attrition probability", "Risk level"].forEach(label => {
+      const th = document.createElement("th"); th.textContent = label; header.appendChild(th);
+    });
+    thead.appendChild(header); table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    visible.forEach(item => {
+      const tr = document.createElement("tr");
+      const vals = [item.row ?? "—", item.employee_number ?? "Not included in CSV", item.result ?? (Number(item.prediction) === 1 ? "Left (Yes)" : "Stayed (No)"), item.attrition_probability == null ? "Unavailable" : percent(item.attrition_probability), item.risk_level ?? "—"];
+      vals.forEach((value, index) => {
+        const td = document.createElement("td");
+        if (index === 4) { const pill = document.createElement("span"); const level = String(value).toLowerCase(); pill.className = `pill ${level === "high" ? "pill-high" : level === "medium" ? "pill-medium" : "pill-low"}`; pill.textContent = String(value); td.appendChild(pill); }
+        else td.textContent = String(value);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    if (!visible.length) { const tr = document.createElement("tr"); const td = document.createElement("td"); td.colSpan = 5; td.textContent = "No employees match this search."; tr.appendChild(td); tbody.appendChild(tr); }
+    table.appendChild(tbody); wrapper.appendChild(table); output.appendChild(wrapper);
+    const pagination = document.createElement("div"); pagination.className = "pagination";
+    const info = document.createElement("span"); info.textContent = `Page ${currentPage} of ${pages}`; pagination.appendChild(info);
+    const prev = document.createElement("button"); prev.type = "button"; prev.textContent = "Previous"; prev.disabled = currentPage <= 1; prev.onclick = () => { currentPage--; renderBatchResults(total); }; pagination.appendChild(prev);
+    const next = document.createElement("button"); next.type = "button"; next.textContent = "Next"; next.disabled = currentPage >= pages; next.onclick = () => { currentPage++; renderBatchResults(total); }; pagination.appendChild(next);
+    output.appendChild(pagination);
+  }
+
+  document.getElementById("batchForm").addEventListener("submit", async (event) => {
+    event.preventDefault(); clearError("batchError");
+    const fileInput = document.getElementById("csvFile");
+    const batchButton = document.getElementById("batchButton");
+    const output = document.getElementById("batchResult");
+    if (!fileInput.files.length) { showError("batchError", "Please select a CSV file."); return; }
+    batchButton.disabled = true; batchButton.textContent = "Analysing CSV…";
+    output.innerHTML = '<div class="loading-line" aria-label="Processing CSV"></div><p class="muted">Validating rows and generating predictions. This may take a moment.</p>';
+    try {
+      const formData = new FormData(); formData.append("file", fileInput.files[0]);
+      const response = await fetch(`${API_URL}/api/predict-batch`, { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Batch prediction failed.");
+      batchResults = data.results || []; currentPage = 1; batchSearch = ""; output.innerHTML = "";
+      const title = document.createElement("h3"); title.textContent = `Batch results`; output.appendChild(title);
+      const leftCount = batchResults.filter(item => Number(item.prediction) === 1).length;
+      const highCount = batchResults.filter(item => String(item.risk_level).toLowerCase() === "high").length;
+      const summary = document.createElement("div"); summary.className = "batch-summary";
+      [`${data.total_employees ?? batchResults.length} processed`, `${leftCount} predicted to leave`, `${highCount} high-risk estimates`].forEach(label => { const chip = document.createElement("div"); chip.className = "summary-chip"; chip.textContent = label; summary.appendChild(chip); });
+      output.appendChild(summary);
+      const toolbar = document.createElement("div"); toolbar.className = "batch-toolbar";
+      const search = document.createElement("input"); search.type = "search"; search.placeholder = "Search employee number, result, risk…"; search.setAttribute("aria-label", "Search batch results");
+      search.addEventListener("input", () => { batchSearch = search.value.trim(); currentPage = 1; renderBatchResults(batchResults.length); });
+      const count = document.createElement("span"); count.className = "muted result-count"; count.textContent = `Showing ${Math.min(pageSize, batchResults.length)} of ${batchResults.length} employees`;
+      toolbar.append(search, count); output.appendChild(toolbar);
+      if (data.note) { const note = document.createElement("p"); note.className = "muted section-note"; note.textContent = data.note; output.appendChild(note); }
+      renderBatchResults(batchResults.length);
+    } catch (error) { output.innerHTML = ""; showError("batchError", error.message); }
+    finally { batchButton.disabled = false; batchButton.textContent = "Predict CSV"; }
+  });
+
+  loadFeatures();
+</script>
+</body>
+</html>
