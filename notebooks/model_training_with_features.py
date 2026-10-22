@@ -1,17 +1,3 @@
-"""
-STEP 2 — TRAIN AND COMPARE MACHINE-LEARNING MODELS WITH ENGINEERED FEATURES
-============================================================================
-
-Run after Step 1:
-    python notebooks/02_model_training_WITH_FEATURES.py
-
-This script:
-1. Loads prepared data with engineered features
-2. Trains 3 ML models
-3. Compares their performance
-4. Saves the best model and visualizations
-"""
-
 from pathlib import Path
 import json
 import warnings
@@ -42,11 +28,8 @@ MODEL_DIR = ROOT / "models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 print("\n" + "="*70)
-print("STEP 2: TRAIN AND COMPARE MODELS WITH ENGINEERED FEATURES")
 print("="*70)
 
-
-print("\n--- LOADING DATA ---")
 
 needed = [DATA_DIR / "X_train.csv", DATA_DIR / "X_test.csv",
           DATA_DIR / "y_train.csv", DATA_DIR / "y_test.csv"]
@@ -67,7 +50,6 @@ print(f"X_test shape: {X_test.shape}")
 print(f"y_train shape: {y_train.shape}")
 print(f"y_test shape: {y_test.shape}")
 
-# Identify numeric and categorical columns
 NUMERIC_COLUMNS = X_train.select_dtypes(include=['int64', 'float64']).columns.tolist()
 CATEGORICAL_COLUMNS = X_train.select_dtypes(include=['object']).columns.tolist()
 
@@ -98,10 +80,6 @@ def build_preprocessor():
 preprocessor = build_preprocessor()
 print("✓ Preprocessor built")
 
-# ============================================================================
-# DEFINE MODELS
-# ============================================================================
-
 print("\n" + "="*70)
 print("DEFINING MODELS")
 print("="*70)
@@ -130,9 +108,6 @@ model_definitions = {
     )
 }
 
-# ============================================================================
-# TRAIN MODELS
-# ============================================================================
 
 print("\n" + "="*70)
 print("TRAINING MODELS")
@@ -178,10 +153,6 @@ for name, classifier in model_definitions.items():
         target_names=["Stayed (No)", "Left (Yes)"], zero_division=0
     ))
 
-# ============================================================================
-# MODEL COMPARISON
-# ============================================================================
-
 print("\n" + "="*70)
 print("MODEL COMPARISON (Sorted by F1-Score)")
 print("="*70)
@@ -199,9 +170,6 @@ print(f"    Precision: {results.iloc[0]['precision']:.4f}")
 print(f"    Recall: {results.iloc[0]['recall']:.4f}")
 print(f"    ROC-AUC: {results.iloc[0]['roc_auc']:.4f}")
 
-# ============================================================================
-# SAVE MODEL AND METADATA
-# ============================================================================
 
 print("\n" + "="*70)
 print("SAVING MODEL AND METADATA")
@@ -232,10 +200,6 @@ print(f"✓ Metadata saved to: {metadata_path}")
 # Save model comparison
 results.to_csv(DATA_DIR / "model_comparison.csv", index=False)
 print(f"✓ Model comparison saved to: {DATA_DIR / 'model_comparison.csv'}")
-
-# ============================================================================
-# VISUALIZATIONS
-# ============================================================================
 
 print("\n" + "="*70)
 print("CREATING VISUALIZATIONS")
@@ -323,11 +287,6 @@ FILES CREATED:
   ✓ feature_importance.png - Feature importance
   ✓ feature_importance.csv - Feature importance data
   
-NEXT STEP:
-  Run: python backend/app_COMPLETE.py
-  
-This will start the Flask API server. The frontend will use the new model
-with engineered features!
 """)
 
 print("="*70)

@@ -1,17 +1,3 @@
-"""
-STEP 1 — DATA PREPARATION WITH FEATURE ENGINEERING
-===================================================
-
-Run this after downloading the Kaggle dataset:
-    python notebooks/01_data_preparation_WITH_FEATURES.py
-
-This script:
-1. Loads the HR dataset
-2. Creates 15 domain-informed features
-3. Splits into train/test
-4. Saves all files for model training
-"""
-
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -330,11 +316,6 @@ FILES CREATED:
   ✓ y_test.csv - Test labels
   ✓ X_test_with_employee_number.csv - For batch predictions
   ✓ eda_analysis.png - Visualizations
-
-NEXT STEP:
-  Run: python notebooks/02_model_training_WITH_FEATURES.py
-
-This will train the 3 models with the new engineered features!
 """)
 
 print("="*70)
